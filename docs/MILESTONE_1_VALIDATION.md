@@ -4,115 +4,103 @@ Last updated: 2026-10-26
 
 ## Outcome
 
-The end-to-end spike is implemented, statically checked, unit tested, and bundled for iOS and Android. Milestone 1 remains **In progress** because its roadmap explicitly requires physical iOS and Android evidence and measured local/remote behavior. No device or provider measurements in this document are inferred or fabricated.
+Milestone 1 is **Complete under the simulator-scoped exit criteria approved on 2026-10-26**. A native development build installed and ran in an iPhone 17 Pro simulator on iOS 26.3. The test exercised local model download and reload, permission failure and retry, the speech and interpretation pipelines, deterministic validation, confirmation, SQLite persistence, notification registration, and restart recovery.
 
-## Implemented vertical flow
+This result validates the vertical architecture; it is not a physical-device qualification. Real microphone accuracy, actual notification delivery and actions, Android behavior, native peak memory, battery, thermal behavior, and multi-day reliability are explicitly deferred to Milestone 6 and private-beta testing.
+
+## Validated vertical flow
 
 ```text
 microphone or typed text
   -> cache-scoped audio (voice only)
-  -> on-device Whisper Tiny English
-  -> local Qwen 2.5 0.5B quantized OR user-authorized OpenRouter
-  -> JSON Schema + deterministic semantic validation
+  -> on-device Whisper Tiny English (XNNPACK)
+  -> local Qwen 3 0.6B quantized OR user-authorized OpenRouter
+  -> compact local protocol expanded to canonical JSON
+  -> JSON Schema + deterministic semantic/future-time validation
   -> confirmation preview
   -> transactional SQLite item/occurrence/registration
   -> OS one-time notification registration
 ```
 
-The spike deliberately confirms only one-time reminders. Other valid proposal shapes can be previewed but are not scheduled until the deterministic recurrence engine in Milestone 2 exists.
+The spike confirms only one-time reminders. Other valid proposal shapes can be previewed but are not scheduled until the deterministic recurrence engine in Milestone 2 exists.
 
-## Implementation evidence
+## Simulator evidence
 
-| Area | Evidence | Result |
+| Gate | Evidence | Result |
 | --- | --- | --- |
-| Application shell | Expo SDK 58, React Native 0.88, Expo Router, New Architecture | Implemented |
-| Capture and retention | `expo-audio`; cache recording; success/failure cleanup; startup deletion after 15 minutes | Implemented |
-| Local transcription | React Native ExecuTorch Whisper Tiny English; decoded mono 16 kHz PCM | Implemented, device run pending |
-| Local interpretation | Quantized Qwen 2.5 0.5B with the committed v1 JSON contract in the prompt | Implemented, corpus/device evaluation pending |
-| Model lifecycle | Explicit opt-in download, progress, pause, resume, cancel, unload, delete, and reload controls | Implemented, device run pending |
-| Validation | Committed JSON Schema plus deterministic cross-field invariants | 8 proposal/parser tests pass |
-| Date/time | Temporal local-to-instant conversion including DST-compatible skipped-time behavior | 3 tests pass |
-| Persistence | SQLite WAL, immutable v1 migration, expiring drafts, atomic confirm transaction | Implemented, restart test pending |
-| Notifications | Permission/channel setup, stable registration identifier, schedule, retry reconciliation, cancel | Implemented, receipt/action checks pending |
-| OpenRouter | S256 PKCE, CSRF state, secure key storage, official copy-code fallback, structured output, local validation | Implemented, account test pending |
-| Instrumentation | Local content-free timing/error/model/token/reported-cost rows | Implemented |
-| SDK/native configuration | `npx expo-doctor` | 20/20 checks passed |
-| Native project generation | Clean iOS and Android `expo prebuild --no-install` in a temporary checkout | Both passed |
-| Bundles | `npx expo export --platform ios` and `--platform android` | Both passed |
-| Dependency audit | `npm audit --omit=dev` | 5 high findings in Expo CLI/toolchain transitive dependencies; no SDK 58-compatible fix currently offered |
+| Native development build | Xcode build completed with 0 errors; app installed and launched as `com.thepaulin.dumbassistant` | Passed |
+| Runtime | iPhone 17 Pro simulator, iOS 26.3 | Recorded |
+| Microphone permission | Denial surfaced an actionable error; granting permission allowed recording | Passed |
+| Local speech path | XNNPACK Whisper Tiny accepted normalized mono 16 kHz/30-second input; two completed transcriptions took 1.63 s and 1.72 s | Pipeline passed; acoustic accuracy not qualified |
+| Local interpretation | Qwen 3 0.6B produced a valid exact-date reminder in 2.77 s; compact output was expanded and validated locally | Passed for spike phrase |
+| Safety boundary | Malformed, semantically invalid, and already-past output is rejected before preview/persistence | Passed in app and unit tests |
+| Confirmation | `Verify simulator validation` for 2026-11-15 09:00 America/Toronto was previewed and explicitly confirmed | Passed |
+| Notification registration | Platform identifier was stored with state `registered`; desired instant is 2026-11-15T14:00:00Z | Passed |
+| Persistence | Item, occurrence, and registration survived process termination and relaunch | Passed |
+| Model lifecycle | Cold download reached ready state and cached assets reloaded after restart | Passed for download/reload |
+| Notification receipt/action | The test reminder is future-dated, so delivery and action handling were not claimed | Deferred |
+| OpenRouter | Integration and local validation are implemented; no user-owned account/key was authorized | Deferred by account boundary |
 
-Repository checks on 2026-10-26:
+The simulator recording path can hear host/simulator noise and produced a plausible Whisper hallucination during a nominally silent capture. The downstream interpreter did not create a schedulable reminder from it. This confirms the safety boundary, but it does not qualify speech recognition; representative spoken audio must be tested on hardware.
+
+## Persistence evidence
+
+The simulator database reported `PRAGMA user_version = 1` and contained:
+
+- an active scheduled item with local start `2026-11-15T09:00:00` in `America/Toronto`;
+- one scheduled occurrence at `2026-11-15T14:00:00.000Z`;
+- one notification registration in `registered` state with a platform identifier;
+- content-free diagnostic rows for interpretation, transcription, and notification registration.
+
+No diagnostic row stores audio, transcript, prompt, response, reminder title, notes, location, or credentials.
+
+## Local model comparison
+
+These are simulator observations from a technical spike, not corpus-quality or physical-resource benchmarks.
+
+| Candidate | Cached asset size | Observed behavior | Observed latency | Decision |
+| --- | ---: | --- | ---: | --- |
+| Qwen 2.5 0.5B quantized | about 400 MB | Malformed output and an incorrect relative date survived syntax but was caught during review | about 1.1-1.7 s | Rejected |
+| Hammer 2.1 0.5B quantized | about 400 MB | Invalid structured fields and repetitive generation | about 45.1 s failure | Rejected |
+| Qwen 3 0.6B quantized | about 496 MB model + 12 MB tokenizer | Produced the correct exact-date spike proposal with compact prompting | 2.23-2.77 s successes; one 19.9 s failure | Provisionally selected |
+| Whisper Tiny English XNNPACK | about 224 MB model + 2.7 MB tokenizer | Completed simulator transcription; host/silent capture is not an accuracy sample | 1.63-1.72 s | Selected for simulator compatibility |
+| Whisper Tiny English Core ML | about 80 MB | Encoder execution failed in this simulator runtime | 0.17-0.60 s failures | Not used in simulator |
+
+The selected fresh-install local assets are approximately 735 MB combined. Failed candidate assets remained in this disposable development simulator and explain its larger current cache. Model deletion and storage reclamation were not exercised because that would destroy the retained validation state.
+
+## Automated and build evidence
+
+Final branch results:
 
 ```text
-npm run typecheck                     passed
-npm test                              11 tests passed
-node scripts/validate-milestone-0.mjs passed; 70 corpus cases present
-npx expo config --type public         passed
-npx expo-doctor                       20/20 checks passed
-iOS and Android clean native prebuild passed
-iOS and Android Hermes bundle exports passed
+npm run check                          passed: strict typecheck, 20 unit tests, 70-case validator
+npx expo-doctor                        passed: 20/20 checks
+npx expo export --platform ios         passed: production iOS Hermes bundle
+npm audit --omit=dev                    5 high findings in Expo CLI/tooling transitives
 ```
 
-`npm audit --omit=dev` currently reports Expo's bundled CLI through `node-forge`, `@expo/code-signing-certificates`, and a nested Zod version. The registry's suggested automatic fix downgrades the application to Expo SDK 54 and is not compatible with the selected SDK 58 foundation. The latest published `node-forge` is still the flagged version. These packages are build/signing toolchain dependencies rather than code imported into the application bundle, but the supply-chain finding must be rechecked before beta and upgraded as soon as Expo publishes a compatible resolution.
+The unit suite covers canonical proposal validation, date/time behavior, compact local-output expansion, future-time rejection, and Whisper input normalization/silence detection.
+
+The npm findings are in Expo's bundled CLI chain through `node-forge`, `@expo/code-signing-certificates`, and a nested Zod version. The offered automatic fix would downgrade the application to Expo SDK 54, so it was not applied to this SDK 58 project. Recheck and upgrade when Expo publishes a compatible resolution; these findings do not justify silently taking a breaking framework downgrade.
 
 ## Privacy and failure behavior
 
 - Audio is recorded only while the user acts, stored under the application cache, and deleted after transcription or terminal failure. Startup cleanup removes abandoned audio older than 15 minutes.
 - Transcript text exists only in the current confirmation draft. Confirmation and cancellation delete the draft; startup cleanup deletes drafts after 24 hours.
 - Confirmed records contain distilled reminder fields, not the source transcript.
-- Diagnostics exclude audio, transcript, title, notes, location, prompt, raw response, and credential data.
 - No notification is requested before deterministic validation and explicit confirmation.
-- The SQLite transaction commits the reminder and a pending registration first. OS registration then marks it registered or failed; failed registrations are eligible for launch reconciliation.
-- Registration IDs are stable, so retry does not intentionally create a second platform registration.
+- The SQLite transaction creates the reminder and a pending registration first. OS registration then marks it registered or failed; failed registrations are eligible for launch reconciliation.
+- Stable registration identifiers make reconciliation idempotent.
 
-## OpenRouter behavior
+## Deferred hardware qualification
 
-- The default remains on-device. Selecting OpenRouter displays a disclosure before transcript text is sent.
-- OAuth uses an S256 verifier/challenge. The deep-link path also checks returned `state`; the official no-callback copy-code flow is available if a provider rejects a native custom scheme.
-- The user-controlled API key is stored with `expo-secure-store` and is never persisted in SQLite or logs.
-- “Forget key” removes local access. Full revocation opens the hashed-key settings page because OpenRouter's delete-key API requires a management key.
-- Requests require a provider endpoint that accepts `response_format: json_schema`; `require_parameters` prevents silent routing to an incompatible endpoint.
-- Every remote result is validated locally against the same contract as local inference.
-- Reported prompt/completion tokens, model identifier, latency, and response-reported cost are saved without content. Actual latency and cost remain unmeasured until an authorized account test.
-- Provider retention and routing depend on the user's OpenRouter account/provider settings and must be checked during the device run.
+Milestone 6 and private beta must cover:
 
-## Required physical-device matrix
+- physical iOS and Android installation, real speech, denial/retry, backgrounding, and offline behavior;
+- notification receipt, open/action/cancel behavior, restart recovery, and multi-day duplicate/loss testing;
+- Whisper Tiny/Base accuracy on representative voices, noise, names, dates, and numbers;
+- the full interpretation corpus with field-level accuracy and repeated inference;
+- native peak memory, storage reclamation after model deletion, battery delta, and thermal state;
+- OpenRouter OAuth, structured-output endpoint behavior, privacy routing, latency/cost, and key revocation with a user-authorized account.
 
-Fill every `Not run` cell with device/OS/build identifiers and attach content-free logs before changing the milestone to Complete.
-
-| Gate | iOS physical device | Android physical device |
-| --- | --- | --- |
-| Development build installs and starts | Not run | Not run |
-| Microphone permission denial/retry | Not run | Not run |
-| Record and locally transcribe | Not run | Not run |
-| Airplane-mode voice-to-preview | Not run | Not run |
-| Confirm and receive one notification | Not run | Not run |
-| Open, act on, and cancel notification | Not run | Not run |
-| SQLite fixture survives restart/migration | Not run | Not run |
-| Download pause/resume/cancel/reload/delete | Not run | Not run |
-| Audio cleanup: success/cancel/failure/restart | Not run | Not run |
-| Temporal/DST corpus under Hermes | Not run | Not run |
-| OpenRouter connect/request/revoke | Not run | Not run |
-
-## Local model qualification matrix
-
-The current models are provisional spike defaults, not a shipped-model decision. Measure Whisper Tiny and Base, and at least three compact language models supported by the runtime, against the same devices and committed 70-case corpus.
-
-| Candidate | Asset size | Peak memory | Median / p95 | Critical-field accuracy | Thermal/battery | Result |
-| --- | ---: | ---: | ---: | ---: | --- | --- |
-| Whisper Tiny English quantized | Not measured | Not measured | Not measured | Transcription WER not measured | Not measured | Pending |
-| Whisper Base English quantized | Not measured | Not measured | Not measured | Transcription WER not measured | Not measured | Pending |
-| Qwen 2.5 0.5B quantized | Not measured | Not measured | Not measured | Not measured | Not measured | Pending |
-| Compact interpretation candidate 2 | Not selected | Not measured | Not measured | Not measured | Not measured | Pending |
-| Compact interpretation candidate 3 | Not selected | Not measured | Not measured | Not measured | Not measured | Pending |
-
-For each candidate, record cold download, cold load, warm inference, ten repeated inferences, native/total peak memory, device temperature or thermal state, battery delta, model disposal, and storage reclaimed after deletion. A candidate qualifies only under the gates in `TECH_STACK.md`.
-
-## How to finish the milestone
-
-1. Install development builds with `npm run ios` and `npm run android` on named physical arm64 devices.
-2. Complete the device matrix, including an airplane-mode run that starts after both local models are cached.
-3. Run the 70-case evaluation for at least three compact interpretation candidates and compare field-level failures.
-4. Capture median/p95 end-to-end latency, model asset size, peak memory, ten-run thermal behavior, and battery delta.
-5. Connect a user-owned OpenRouter account, set a credit limit, verify structured-output capability and privacy routing, run one request, record latency/cost, and revoke the key.
-6. Update this report with actual evidence, check the remaining exit criteria in `ROADMAP.md`, and change `STATUS.md` only when every gate passes.
+The release-quality thresholds in `TECH_STACK.md` remain unchanged; completing this simulator spike does not waive them.

@@ -7,7 +7,7 @@ This roadmap tracks outcomes rather than calendar promises. Dates and estimates 
 | Milestone | Status | Outcome |
 | --- | --- | --- |
 | 0. Product and scheduling specification | Complete | The supported product behavior is explicit and testable |
-| 1. End-to-end technical spike | In progress | One spoken request produces one real notification |
+| 1. End-to-end technical spike | Complete | The local vertical architecture works in an iOS simulator; hardware qualification is deferred |
 | 2. Deterministic reminder engine | Not started | Supported schedules behave correctly without AI |
 | 3. Usable manual product | Not started | The complete product works without voice |
 | 4. Voice-first creation | Not started | Natural input becomes a safe, editable proposal |
@@ -60,11 +60,13 @@ Deliverables:
 
 Exit criteria:
 
-- [ ] The flow works on one physical iOS device and one physical Android device.
-- [ ] A one-time reminder can be created entirely through voice with the network disabled.
+- [x] The native development build installs, starts, and completes the vertical flow in an iOS simulator.
+- [x] With models cached, a one-time reminder can be interpreted locally, reviewed, confirmed, persisted, and registered with the simulator notification service without a provider request.
+- [x] The simulator microphone denial/retry and local transcription pipeline execute; representative real-speech accuracy is explicitly deferred to hardware qualification.
 - [x] Invalid model output cannot create a malformed schedule.
-- [ ] Local model accuracy, latency, peak memory, size, thermal behavior, and battery impact are documented.
-- [ ] Optional remote latency, cost, privacy, and model-capability behavior are documented.
+- [x] Three local interpretation candidates, simulator latency, model size, failure behavior, and the provisional selection are documented.
+- [x] Physical memory, thermal, battery, notification delivery, Android, and full-corpus accuracy gates are transferred to Milestone 6/private beta.
+- [x] The optional remote path and privacy boundary are implemented; account-bound latency, cost, routing, and revocation checks are deferred until explicitly authorized.
 
 ## Milestone 2 — Deterministic reminder engine
 

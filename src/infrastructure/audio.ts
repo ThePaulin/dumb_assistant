@@ -1,11 +1,15 @@
 import { Directory, File, Paths } from 'expo-file-system';
 import { decodeAudioData } from 'react-native-audio-api';
 
+import { normalizeWhisperWaveform, WHISPER_SAMPLE_RATE_HZ } from '../inference/whisper-input';
+
 const ABANDONED_AUDIO_MAX_AGE_MS = 15 * 60 * 1000;
 
 export async function decodeRecording(uri: string): Promise<Float32Array> {
-  const audioBuffer = await decodeAudioData(uri, 16_000);
-  if (audioBuffer.numberOfChannels === 1) return audioBuffer.getChannelData(0);
+  const audioBuffer = await decodeAudioData(uri, WHISPER_SAMPLE_RATE_HZ);
+  if (audioBuffer.numberOfChannels === 1) {
+    return normalizeWhisperWaveform(audioBuffer.getChannelData(0));
+  }
 
   const mono = new Float32Array(audioBuffer.length);
   for (let channel = 0; channel < audioBuffer.numberOfChannels; channel += 1) {
@@ -14,7 +18,7 @@ export async function decodeRecording(uri: string): Promise<Float32Array> {
       mono[index] = (mono[index] ?? 0) + (samples[index] ?? 0) / audioBuffer.numberOfChannels;
     }
   }
-  return mono;
+  return normalizeWhisperWaveform(mono);
 }
 
 export function deleteRecording(uri: string | null | undefined): void {

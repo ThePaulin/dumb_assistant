@@ -2,7 +2,7 @@
 
 Decision date: 2026-10-26
 
-This stack is selected for the MVP and will be validated by the Milestone 1 vertical spike. A failed physical-device exit criterion can trigger a documented replacement decision.
+This stack is selected for the MVP. Milestone 1 validates the vertical architecture in an iOS simulator; physical-device qualification remains a release decision gate in Milestone 6.
 
 ## Selected mobile stack
 
@@ -22,7 +22,7 @@ This stack is selected for the MVP and will be validated by the Milestone 1 vert
 | UI/session state | Component state and `useReducer`; narrowly scoped React contexts for app services |
 | Tests | Vitest for pure TypeScript; React Native Testing Library for UI; Maestro for critical device flows |
 | Package/runtime baseline | Node.js 22.13+ and the package manager chosen when scaffolding |
-| Supported OS baseline | Android 7+ and iOS 16.4+, matching Expo SDK 58 |
+| Supported OS baseline | Android 7+ for the Expo shell; iOS 17+ for the selected React Native ExecuTorch runtime |
 
 Use an Expo development build from the beginning rather than relying on Expo Go as the production development environment.
 
@@ -79,7 +79,7 @@ Transcription and interpretation run on the device by default. The MVP does not 
 
 The current [React Native ExecuTorch LLM catalog](https://docs.swmansion.com/react-native-executorch/docs/extensions/llm-chat-and-generation) includes compact models from roughly 265 MB upward and notes their supported device backends. Its [benchmark guidance](https://docs.swmansion.com/react-native-executorch/docs/next/benchmarks) shows why download size, peak native memory, cold start, and device-specific throughput must be release gates rather than assumptions.
 
-The exact shipped weights are deliberately selected in Milestone 1 from measured results, not brand preference. A model qualifies only if it meets all of these gates on the baseline physical-device set:
+The spike provisionally selects Qwen 3 0.6B after simulator comparison with Qwen 2.5 0.5B and Hammer 2.1 0.5B. This is not the shipped-model decision. A model qualifies for release only if it meets all of these gates on the baseline physical-device set:
 
 - 100% schema-valid output after at most one retry
 - At least 80% exact full-case accuracy on ordinary supported phrases
@@ -140,15 +140,15 @@ This boundary permits future system-model or cloud integrations without changing
 
 Do not add a general global-state library during the spike. SQLite owns persistent state, repositories expose domain operations, and React owns transient screen state. Introduce another state library only through a decision showing a concrete problem that React context/reducers and query hooks cannot solve.
 
-## Milestone 1 validation gates
+## Milestone 1 simulator validation gates
 
-- Record and transcribe locally on physical iOS and Android devices.
-- Download, resume, delete, reload, and dispose both model assets safely.
-- Schedule, receive, act on, and cancel a local notification on both platforms.
-- Persist and migrate a SQLite fixture across an app restart.
-- Run the Temporal polyfill and DST test corpus under Hermes.
-- Evaluate at least three compact interpretation models against the committed phrase corpus.
-- Validate both local and OpenRouter outputs against the same committed schema.
-- Measure end-to-end median/p95 latency, peak memory, model size, and repeated-use thermal behavior.
-- Confirm audio cleanup on success, cancellation, failure, and application restart.
-- Confirm OpenRouter OAuth PKCE, secure credential storage, revocation, and credit-limit guidance.
+- Build, install, and start the native app in an iOS simulator.
+- Download and reload the speech and language model assets.
+- Exercise microphone permission denial/retry and the local transcription pipeline.
+- Interpret a local request, preview it, confirm it, and register a one-time notification.
+- Persist the SQLite item, occurrence, and platform registration across an app restart.
+- Reject malformed, semantically invalid, or past model output before persistence.
+- Compare at least three compact interpretation candidates and record simulator latency and asset size.
+- Validate both local and OpenRouter outputs against the same committed schema; remote account use is optional and requires explicit user authorization.
+
+Physical iOS/Android microphone accuracy, notification receipt/actions, model deletion/storage reclamation, native peak memory, battery, thermal behavior, multi-run corpus accuracy, and OpenRouter account/revocation checks are deferred to Milestone 6 and private-beta qualification.

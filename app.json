@@ -29,7 +29,15 @@
       ],
       "expo-sqlite",
       "react-native-audio-api",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "17.0"
+          }
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": true,

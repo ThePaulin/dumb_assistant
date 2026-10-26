@@ -123,10 +123,10 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.eyebrow}>PHYSICAL-DEVICE CHECK</Text>
-        <Text style={styles.title}>Before marking Milestone 1 complete</Text>
+        <Text style={styles.eyebrow}>VALIDATION SCOPE</Text>
+        <Text style={styles.title}>Simulator spike complete</Text>
         <Text style={styles.body}>
-          Run the offline voice flow and notification receipt on one iOS and one Android device, then record latency, memory, model size, battery, and thermal measurements in the validation report.
+          The iOS Simulator verifies the native build, local model pipeline, guarded confirmation, persistence, and notification registration. Real microphone acoustics, notification delivery, memory, battery, thermal, and Android behavior remain physical-device follow-ups before beta.
         </Text>
       </View>
 

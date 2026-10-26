@@ -20,15 +20,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLLM, useSpeechToText, type Message } from 'react-native-executorch';
 import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
 
-import { extractJsonObject, validateProposal, type InterpretationProposal } from '@/domain/proposal';
+import { type InterpretationProposal } from '@/domain/proposal';
 import { deviceTimeZone } from '@/domain/time';
+import { parseLocalInterpretation } from '@/inference/compact-proposal';
 import {
   LANGUAGE_MODEL,
   LANGUAGE_MODEL_SOURCES,
   WHISPER_MODEL,
   WHISPER_SOURCES,
 } from '@/inference/models';
-import { interpretationMessages } from '@/inference/prompt';
+import { localInterpretationMessages } from '@/inference/prompt';
+import { hasAudibleSignal } from '@/inference/whisper-input';
 import { cleanupAbandonedAudio, decodeRecording, deleteRecording } from '@/infrastructure/audio';
 import {
   cleanupExpiredDrafts,
@@ -104,9 +106,8 @@ export default function HomeScreen() {
       if (!language.isReady) throw new Error('Download and load the offline language model first.');
       const started = performance.now();
       try {
-        const raw = await language.generate(interpretationMessages(text, requestContext) as Message[]);
-        const validated = validateProposal(extractJsonObject(raw));
-        if (!validated.ok) throw new Error(`Local model returned an invalid proposal: ${validated.errors.join(' ')}`);
+        const raw = await language.generate(localInterpretationMessages(text, requestContext) as Message[]);
+        const validated = parseLocalInterpretation(raw, requestContext);
         await recordDiagnostic({
           category: 'interpretation',
           engine: 'local',
@@ -116,7 +117,7 @@ export default function HomeScreen() {
           promptTokens: language.getPromptTokenCount(),
           completionTokens: language.getGeneratedTokenCount(),
         });
-        return validated.value;
+        return validated;
       } catch (error) {
         await recordDiagnostic({
           category: 'interpretation',
@@ -188,7 +189,7 @@ export default function HomeScreen() {
     if (!permission.granted) throw new Error('Microphone permission is required to record a reminder.');
     await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
     await recorder.prepareToRecordAsync();
-    recorder.record({ forDuration: 60 });
+    recorder.record({ forDuration: 30 });
     setNotice(null);
     setPhase('recording');
   }, [recorder, speech.isReady]);
@@ -203,7 +204,10 @@ export default function HomeScreen() {
       uri = recorder.uri;
       if (!uri) throw new Error('The recording could not be read.');
       const waveform = await decodeRecording(uri);
-      const result = await speech.transcribe(waveform, { language: 'en' });
+      if (!hasAudibleSignal(waveform)) {
+        throw new Error('No speech was detected. Try recording again in a quieter environment.');
+      }
+      const result = await speech.transcribe(waveform);
       text = result.text.trim();
       setTranscript(text);
       await recordDiagnostic({
