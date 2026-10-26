@@ -49,3 +49,6 @@ playwright-report/
 # Local AI and voice artifacts
 recordings/
 transcripts/
+model-cache/
+*.pte
+*.gguf

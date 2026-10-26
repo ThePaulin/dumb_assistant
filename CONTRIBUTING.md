@@ -10,6 +10,12 @@ This project is in its specification and foundation stage. Contributions should 
 4. Record a product or architectural decision in `docs/DECISIONS.md` when the change introduces a lasting constraint.
 5. Do not silently expand the MVP scope.
 
+For specification changes, run:
+
+```bash
+node scripts/validate-milestone-0.mjs
+```
+
 ## Branches and commits
 
 - Create a focused branch for each feature, fix, or documentation change.
@@ -61,6 +67,8 @@ Any change to prompts, models, providers, extraction logic, or interpretation sc
 2. Be evaluated against the representative phrase corpus.
 3. Report field-level regressions, especially date, time, recurrence, and stopping rules.
 4. Prefer clarification or an unsupported result over an invented critical value.
+5. Record local model size, quantization, runtime, device, peak memory, latency, and thermal behavior.
+6. Preserve the on-device default and require explicit consent before remote interpretation.
 
 ## Documentation ownership
 

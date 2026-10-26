@@ -8,7 +8,7 @@ The app is designed for people who know what they need to remember but do not wa
 
 ## Project status
 
-The project is currently in **Milestone 0 — Product and scheduling specification**. No application framework has been selected yet.
+**Milestone 0 — Product and scheduling specification is complete.** The project is ready to begin the Milestone 1 end-to-end technical spike.
 
 See [docs/STATUS.md](docs/STATUS.md) for the current work and [docs/ROADMAP.md](docs/ROADMAP.md) for milestone progress.
 
@@ -20,6 +20,8 @@ See [docs/STATUS.md](docs/STATUS.md) for the current work and [docs/ROADMAP.md](
 - The user sees a structured preview before saving.
 - Reminders are the primary feature; events receive basic support.
 - Data is local-first for the MVP, with no account or cloud synchronization.
+- Speech transcription and schedule interpretation run on-device by default.
+- Users may optionally connect OpenRouter to use a compatible remote model.
 - Reliability and user trust are more important than supporting every possible phrase.
 
 ## MVP capabilities
@@ -68,15 +70,26 @@ The user can confirm or edit this interpretation before the reminder is schedule
 
 - [Product scope](docs/PRODUCT.md) — users, workflows, requirements, boundaries, and success measures
 - [Scheduling specification](docs/SCHEDULING_SPEC.md) — recurrence semantics and edge cases
-- [Architecture](docs/ARCHITECTURE.md) — system boundaries, constraints, and open technical choices
+- [Domain model](docs/DOMAIN_MODEL.md) — item, occurrence, notification, and SQLite v1 contracts
+- [Architecture](docs/ARCHITECTURE.md) — system boundaries, constraints, and selected technical foundation
+- [Technical stack](docs/TECH_STACK.md) — selected technologies, on-device inference, and validation gates
+- [UX flows](docs/UX_FLOWS.md) — low-fidelity screen flows and accessibility criteria
 - [Roadmap](docs/ROADMAP.md) — milestones, deliverables, and exit criteria
 - [Current status](docs/STATUS.md) — active work, risks, and immediate next steps
 - [Decision log](docs/DECISIONS.md) — product and technical decisions with their rationale
 - [Contributing](CONTRIBUTING.md) — working agreements and definition of done
+- [Interpretation schema](schemas/interpretation-proposal.v1.schema.json) — versioned AI output contract
+- [Evaluation corpus](evals/interpretation-cases.v1.json) — 70 phrase-to-structure cases
 
 ## Development
 
-Development commands will be added after the cross-platform framework and supporting tools are selected. Do not add framework-specific setup instructions until the choice is recorded in [docs/DECISIONS.md](docs/DECISIONS.md).
+The selected foundation is Expo SDK 58, React Native, strict TypeScript, Expo Router, SQLite, Temporal semantics, and React Native ExecuTorch. Development commands will be added when Milestone 1 scaffolds the application.
+
+Validate the completed specification package with:
+
+```bash
+node scripts/validate-milestone-0.mjs
+```
 
 ## License
 

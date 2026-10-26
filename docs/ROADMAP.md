@@ -6,7 +6,7 @@ This roadmap tracks outcomes rather than calendar promises. Dates and estimates 
 
 | Milestone | Status | Outcome |
 | --- | --- | --- |
-| 0. Product and scheduling specification | In progress | The supported product behavior is explicit and testable |
+| 0. Product and scheduling specification | Complete | The supported product behavior is explicit and testable |
 | 1. End-to-end technical spike | Not started | One spoken request produces one real notification |
 | 2. Deterministic reminder engine | Not started | Supported schedules behave correctly without AI |
 | 3. Usable manual product | Not started | The complete product works without voice |
@@ -26,23 +26,23 @@ Deliverables:
 - [x] Initial in-scope and deferred-scope boundaries
 - [x] Initial reminder and event concepts
 - [x] Initial recurrence semantics
-- [ ] Resolve open recurrence behavior in `SCHEDULING_SPEC.md`
-- [ ] Define the versioned interpretation JSON schema
-- [ ] Define the persistence/domain model in implementation-ready detail
-- [ ] Create at least 50 representative phrases with expected structured outputs
-- [ ] Complete low-fidelity flows for the essential screens
-- [ ] Decide transcript and audio retention behavior
-- [ ] Select the cross-platform framework using a short comparison spike
-- [ ] Select local persistence and date/time libraries
-- [ ] Decide whether the AI path requires a minimal backend for credential protection
+- [x] Resolve open recurrence behavior in `SCHEDULING_SPEC.md`
+- [x] Define the versioned interpretation JSON schema
+- [x] Define the persistence/domain model in implementation-ready detail
+- [x] Create at least 50 representative phrases with expected structured outputs
+- [x] Complete low-fidelity flows for the essential screens
+- [x] Decide transcript and audio retention behavior
+- [x] Select the cross-platform framework using a short comparison
+- [x] Select local persistence and date/time libraries
+- [x] Decide whether the AI path requires a minimal backend for credential protection
 
 Exit criteria:
 
-- [ ] At least 50 representative phrases have agreed expected outputs.
-- [ ] Every supported schedule maps cleanly to the data model.
-- [ ] Unsupported requests have defined fallback behavior.
-- [ ] Reminder and event terminology is consistent across documentation and wireframes.
-- [ ] Foundational technical choices are recorded in `DECISIONS.md`.
+- [x] At least 50 representative phrases have agreed expected outputs.
+- [x] Every supported schedule maps cleanly to the data model.
+- [x] Unsupported requests have defined fallback behavior.
+- [x] Reminder and event terminology is consistent across documentation and wireframes.
+- [x] Foundational technical choices are recorded in `DECISIONS.md`.
 
 ## Milestone 1 — End-to-end technical spike
 
@@ -50,8 +50,10 @@ Deliverables:
 
 - [ ] Cross-platform application shell
 - [ ] Microphone capture
-- [ ] Speech transcription
-- [ ] Structured interpretation of a limited phrase set
+- [ ] Downloadable on-device speech and language models
+- [ ] On-device speech transcription
+- [ ] Structured local interpretation of a limited phrase set
+- [ ] Optional OpenRouter OAuth PKCE connection and compatible-model request
 - [ ] Minimal confirmation preview
 - [ ] One-time local notification
 - [ ] Basic timing, error, and cost instrumentation
@@ -59,9 +61,10 @@ Deliverables:
 Exit criteria:
 
 - [ ] The flow works on one physical iOS device and one physical Android device.
-- [ ] A one-time reminder can be created entirely through voice.
+- [ ] A one-time reminder can be created entirely through voice with the network disabled.
 - [ ] Invalid model output cannot create a malformed schedule.
-- [ ] Expected latency, cost, privacy, and network requirements are documented.
+- [ ] Local model accuracy, latency, peak memory, size, thermal behavior, and battery impact are documented.
+- [ ] Optional remote latency, cost, privacy, and model-capability behavior are documented.
 
 ## Milestone 2 — Deterministic reminder engine
 

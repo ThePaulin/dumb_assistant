@@ -172,14 +172,17 @@ Initial interpretation target: at least 80% of ordinary supported requests shoul
 - Desktop and web applications
 - Advanced analytics and gamification
 - External service actions
-- Full offline speech transcription or interpretation
+- Background or always-on speech processing
 - Attachments and task dependencies
 
-## Open product questions
+## Resolved MVP behavior
 
-- Should transcripts be discarded immediately after confirmation or retained locally in item history?
-- What should the default behavior be when a time zone changes?
-- Which event recurrence combinations should be included in the MVP?
-- What are the default snooze choices?
-- Should a dismissed notification remain overdue, be marked complete, or remain untouched?
-- How should missed occurrences inside an active window be represented?
+- Audio is deleted after transcription, cancellation, or terminal failure.
+- Transcripts are retained only in the unconfirmed draft and deleted on confirmation, cancellation, or 24-hour expiry.
+- Schedules follow the device time zone by default; an explicitly named or selected IANA zone stays fixed.
+- Events support the fixed recurrence forms defined in `SCHEDULING_SPEC.md`; they do not support completion-relative recurrence or active windows.
+- Default snooze choices are 10 minutes, 30 minutes, 1 hour, and a custom date/time.
+- Dismissing a notification does not complete or otherwise resolve its occurrence.
+- Missed fixed occurrences are recorded without replaying a notification burst; the most recent may appear overdue.
+- Completion-relative reminders retain one unresolved overdue occurrence and do not generate another until it is completed.
+- Voice transcription and interpretation run on-device by default. OpenRouter is an optional user-authorized remote interpretation path.

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dumb-assistant.local/schemas/scheduled-item.v1.schema.json",
+  "title": "ScheduledItemV1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "id": { "type": "string", "minLength": 1 },
+    "revision": { "type": "integer", "minimum": 1 },
+    "kind": { "enum": ["reminder", "event"] },
+    "status": { "enum": ["draft", "active", "paused", "ended"] },
+    "title": { "type": "string", "minLength": 1 },
+    "notes": { "type": ["string", "null"] },
+    "schedule": { "$ref": "#/$defs/schedule" },
+    "event": { "anyOf": [{ "$ref": "#/$defs/event" }, { "type": "null" }] },
+    "created_at": { "type": "string" },
+    "updated_at": { "type": "string" }
+  },
+  "required": ["schema_version", "id", "revision", "kind", "status", "title", "notes", "schedule", "event", "created_at", "updated_at"],
+  "$defs": {
+    "schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start_local": { "type": "string" },
+        "time_zone": { "type": "string" },
+        "time_zone_policy": { "enum": ["follow_device", "fixed"] },
+        "frequency": { "enum": ["none", "minute", "hour", "day", "week", "month"] },
+        "interval": { "type": ["integer", "null"], "minimum": 1 },
+        "preferred_day_of_month": { "type": ["integer", "null"], "minimum": 1, "maximum": 31 },
+        "weekdays": { "type": "array", "items": { "type": "integer", "minimum": 1, "maximum": 7 }, "uniqueItems": true },
+        "times_of_day": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "active_window_start": { "type": ["string", "null"] },
+        "active_window_end": { "type": ["string", "null"] },
+        "recurrence_anchor": { "enum": ["fixed", "completion"] },
+        "stop_kind": { "enum": ["never", "on_date", "after_occurrences"] },
+        "stop_on_date": { "type": ["string", "null"] },
+        "stop_after_occurrences": { "type": ["integer", "null"], "minimum": 1 }
+      },
+      "required": ["start_local", "time_zone", "time_zone_policy", "frequency", "interval", "preferred_day_of_month", "weekdays", "times_of_day", "active_window_start", "active_window_end", "recurrence_anchor", "stop_kind", "stop_on_date", "stop_after_occurrences"]
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "duration_minutes": { "type": "integer", "minimum": 1 },
+        "location": { "type": ["string", "null"] },
+        "alert_offsets_minutes": { "type": "array", "items": { "type": "integer", "minimum": 0 }, "uniqueItems": true }
+      },
+      "required": ["duration_minutes", "location", "alert_offsets_minutes"]
+    }
+  }
+}

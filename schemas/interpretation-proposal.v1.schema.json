@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dumb-assistant.local/schemas/interpretation-proposal.v1.schema.json",
+  "title": "InterpretationProposalV1",
+  "description": "Provider-neutral result produced from voice or text. All properties are required; absent values use null or an empty array.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "result": { "enum": ["proposal", "needs_clarification", "unsupported"] },
+    "intent": { "type": ["string", "null"], "enum": ["reminder", "event", null] },
+    "title": { "type": ["string", "null"] },
+    "notes": { "type": ["string", "null"] },
+    "schedule": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "start_local": { "type": "string", "description": "YYYY-MM-DDTHH:mm:ss without an offset." },
+        "time_zone": { "type": "string", "description": "Effective IANA time-zone identifier." },
+        "time_zone_policy": { "enum": ["follow_device", "fixed"] },
+        "frequency": { "enum": ["none", "minute", "hour", "day", "week", "month"] },
+        "interval": { "type": ["integer", "null"], "minimum": 1 },
+        "weekdays": { "type": "array", "items": { "type": "integer", "minimum": 1, "maximum": 7 }, "uniqueItems": true },
+        "times_of_day": { "type": "array", "items": { "type": "string", "description": "HH:mm:00" }, "uniqueItems": true },
+        "active_window": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "start_time": { "type": "string", "description": "HH:mm:00" },
+            "end_time": { "type": "string", "description": "HH:mm:00; inclusive" }
+          },
+          "required": ["start_time", "end_time"]
+        },
+        "recurrence_anchor": { "enum": ["fixed", "completion"] },
+        "stop": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "enum": ["never", "on_date", "after_occurrences"] },
+            "on_date": { "type": ["string", "null"], "description": "Inclusive local date as YYYY-MM-DD." },
+            "after_occurrences": { "type": ["integer", "null"], "minimum": 1 }
+          },
+          "required": ["kind", "on_date", "after_occurrences"]
+        }
+      },
+      "required": ["start_local", "time_zone", "time_zone_policy", "frequency", "interval", "weekdays", "times_of_day", "active_window", "recurrence_anchor", "stop"]
+    },
+    "event": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "end_local": { "type": ["string", "null"], "description": "YYYY-MM-DDTHH:mm:ss" },
+        "duration_minutes": { "type": ["integer", "null"], "minimum": 1 },
+        "location": { "type": ["string", "null"] },
+        "alert_offsets_minutes": { "type": "array", "items": { "type": "integer", "minimum": 0 }, "uniqueItems": true }
+      },
+      "required": ["end_local", "duration_minutes", "location", "alert_offsets_minutes"]
+    },
+    "clarification": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "field": { "enum": ["intent", "title", "start_date", "start_time", "times_of_day", "event_duration", "recurrence", "recurrence_anchor", "stop_rule", "time_zone"] },
+        "question": { "type": "string" }
+      },
+      "required": ["field", "question"]
+    },
+    "unsupported": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "reason_code": { "enum": ["location_trigger", "business_calendar", "conditional_escalation", "external_dependency", "overnight_active_window", "ordinal_weekday", "unrepresentable_schedule", "non_scheduling_request"] },
+        "message": { "type": "string" }
+      },
+      "required": ["reason_code", "message"]
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "enum": ["dst_time_adjusted", "month_day_will_clamp", "explicit_time_zone", "complex_schedule_review_recommended"] },
+      "uniqueItems": true
+    },
+    "field_confidences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "field": { "type": "string" },
+          "confidence": { "enum": ["high", "medium", "low"] },
+          "source_text": { "type": ["string", "null"] }
+        },
+        "required": ["field", "confidence", "source_text"]
+      }
+    }
+  },
+  "required": ["schema_version", "result", "intent", "title", "notes", "schedule", "event", "clarification", "unsupported", "warnings", "field_confidences"]
+}

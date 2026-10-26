@@ -1,28 +1,36 @@
 # Architecture
 
-This document describes architectural boundaries and constraints. Technology-specific details will be added after the initial choices are evaluated and recorded in the decision log.
+This document describes the MVP architecture and its boundaries. Selected technologies and validation gates are detailed in `TECH_STACK.md` and recorded in the decision log.
 
 ## Architectural goals
 
 - Share product code across iOS and Android where practical.
 - Keep the scheduling engine deterministic, independently testable, and isolated from AI providers.
 - Keep confirmed user data local-first during the MVP.
-- Permit transcription and interpretation providers to change without rewriting the domain model.
+- Run transcription and interpretation locally by default while permitting optional engines without rewriting the domain model.
 - Treat operating-system notification APIs as fallible external systems.
 - Make schema evolution and data migration explicit from the beginning.
 
 ## Proposed logical components
 
 ```text
-Voice or text input
-        |
-        v
-Transcription adapter (voice only)
-        |
-        v
-Interpretation adapter
-        |
-        v
+Voice input --------> Local Whisper engine
+   |                         |
+   |                         v
+Text input ------------> Transcript text
+                              |
+                              v
+              +------- Interpretation engine -------+
+              |                                      |
+              v                                      v
+       Local compact model                 OpenRouter (optional)
+              |                                      |
+              +------------------+-------------------+
+                                 |
+                                 v
+                      Provider-neutral proposal
+                                 |
+                                 v
 Schema validation and clarification
         |
         v
@@ -53,14 +61,17 @@ iOS / Android notification APIs
 ### Transcription adapter
 
 - Converts audio into text.
-- Reports timing and transcription errors separately from interpretation errors.
-- Hides provider-specific response formats from the application.
+- Uses local Whisper through React Native ExecuTorch for the MVP.
+- Reports model availability, memory, timing, and transcription errors separately from interpretation errors.
+- Owns model download, load, disposal, and version metadata.
 
 ### Interpretation adapter
 
 - Converts text into a versioned structured proposal.
 - Identifies missing or uncertain critical fields.
 - Never writes directly to storage or notification APIs.
+- Uses a compact local model by default and an OAuth-authorized OpenRouter model only when the user opts in.
+- Normalizes both engines to the same committed proposal schema.
 
 ### Validation and clarification
 
@@ -90,10 +101,14 @@ iOS / Android notification APIs
 ## Data and privacy boundaries
 
 - Confirmed reminders, events, and schedule state are stored locally.
-- Audio and transcripts are not retained by default beyond the creation flow unless a later decision explicitly changes this.
+- Audio is deleted after transcription, cancellation, or terminal failure; abandoned cache entries are deleted after 15 minutes.
+- Transcripts exist only in interpretation drafts and are deleted on confirm, cancel, or 24-hour draft expiry.
+- Local model assets are separate from user data and can be deleted in settings.
+- OpenRouter receives transcript text only after explicit opt-in; raw audio is not sent through that path.
+- A user-controlled OpenRouter key is created through OAuth PKCE, stored in the platform secure credential store, and revocable.
 - Logs should contain request identifiers, timings, result categories, and schema versions—not raw audio, titles, notes, or transcripts.
-- Any remote transcription or interpretation must be disclosed before recording begins.
-- Secrets and provider keys must never be embedded directly in a shipped mobile application. The final service architecture must account for this before external AI calls are introduced.
+- Remote interpretation and its provider/model are disclosed before transcript text leaves the device.
+- No developer-owned provider key is embedded in the application.
 
 ## Error boundaries
 
@@ -124,7 +139,7 @@ A failure in one layer should not be presented as a generic “AI error” when 
 
 ### Contract tests
 
-- Interpretation provider output against the versioned schema
+- Local and optional remote interpretation output against the versioned schema
 - Persistence migrations
 - Platform notification adapter behavior
 
@@ -142,21 +157,24 @@ A failure in one layer should not be presented as a generic “AI error” when 
 - Device restart where applicable
 - Time-zone and clock changes
 - Accessibility workflows
+- Model download, cold load, memory pressure, disposal, latency, and thermal behavior
+- Local inference with the network disabled
+- OpenRouter OAuth callback, secure storage, disconnect, and revocation
 
-## Open technical decisions
+## Selected technical foundation
 
-These must be resolved through short written decisions rather than becoming implicit through the first implementation:
+| Concern | Selection |
+| --- | --- |
+| Application | Expo SDK 58, React Native, TypeScript, Expo Router, development builds |
+| Storage | `expo-sqlite`, WAL, repository interfaces, ordered migrations |
+| Date/time | Temporal semantics through `@js-temporal/polyfill` |
+| Recurrence | Pure TypeScript custom engine |
+| Local inference | React Native ExecuTorch with downloadable Whisper and compact instruction models |
+| Optional remote inference | OpenRouter OAuth PKCE and structured-output-compatible endpoints |
+| Validation | JSON Schema contract plus Zod/domain validation |
+| State | SQLite for persistent state; React state/reducers/contexts for transient state |
 
-1. Cross-platform application framework
-2. Local database and migration mechanism
-3. State-management approach
-4. Date/time and recurrence libraries
-5. Transcription strategy and provider
-6. Interpretation strategy and provider
-7. Whether a minimal backend is required to protect AI provider credentials
-8. Analytics and crash-reporting tools
-9. Test frameworks and physical-device automation
-10. Minimum supported iOS and Android versions
+Milestone 1 determines the exact compact model weights and Whisper size by measurement. Analytics/crash-reporting vendors are intentionally deferred until reliability hardening; early diagnostics remain local and content-free.
 
 ## Constraints on early implementation
 
@@ -165,4 +183,6 @@ These must be resolved through short written decisions rather than becoming impl
 - Do not allow provider-specific AI response objects into the domain layer.
 - Do not schedule a notification before deterministic validation and user confirmation.
 - Do not assume successful registration guarantees notification delivery.
-- Do not commit API keys, signing credentials, or user-generated audio/transcripts.
+- Do not commit API keys, signing credentials, model binaries, or user-generated audio/transcripts.
+- Do not load a local model without handling download progress, memory failure, cancellation, and explicit native-resource disposal.
+- Do not send transcript text remotely unless the user selected the OpenRouter path and saw the disclosure.
