@@ -39,6 +39,7 @@ The spike deliberately confirms only one-time reminders. Other valid proposal sh
 | SDK/native configuration | `npx expo-doctor` | 20/20 checks passed |
 | Native project generation | Clean iOS and Android `expo prebuild --no-install` in a temporary checkout | Both passed |
 | Bundles | `npx expo export --platform ios` and `--platform android` | Both passed |
+| Dependency audit | `npm audit --omit=dev` | 5 high findings in Expo CLI/toolchain transitive dependencies; no SDK 58-compatible fix currently offered |
 
 Repository checks on 2026-10-26:
 
@@ -51,6 +52,8 @@ npx expo-doctor                       20/20 checks passed
 iOS and Android clean native prebuild passed
 iOS and Android Hermes bundle exports passed
 ```
+
+`npm audit --omit=dev` currently reports Expo's bundled CLI through `node-forge`, `@expo/code-signing-certificates`, and a nested Zod version. The registry's suggested automatic fix downgrades the application to Expo SDK 54 and is not compatible with the selected SDK 58 foundation. The latest published `node-forge` is still the flagged version. These packages are build/signing toolchain dependencies rather than code imported into the application bundle, but the supply-chain finding must be rechecked before beta and upgraded as soon as Expo publishes a compatible resolution.
 
 ## Privacy and failure behavior
 
