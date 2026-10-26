@@ -1,0 +1,51 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.keystore
+*.jks
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+.cache/
+tmp/
+temp/
+
+# Dependencies and generated output
+node_modules/
+dist/
+build/
+coverage/
+
+# Editors
+.idea/
+.vscode/
+*.iml
+
+# Operating systems
+.DS_Store
+Thumbs.db
+
+# Mobile build and signing artifacts
+DerivedData/
+Pods/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+.gradle/
+local.properties
+**/captures/
+**/.cxx/
+
+# Test artifacts
+test-results/
+playwright-report/
+
+# Local AI and voice artifacts
+recordings/
+transcripts/
