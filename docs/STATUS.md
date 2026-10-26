@@ -4,65 +4,53 @@ Last updated: 2026-10-26
 
 ## Current milestone
 
-**Milestone 0 — Complete. Milestone 1 — Ready to start.**
+**Milestone 0 — Complete. Milestone 1 — Complete (simulator-scoped technical spike). Milestone 2 — Not started.**
 
 ## Current objective
 
-Build the Milestone 1 end-to-end technical spike: local voice capture, on-device transcription, on-device interpretation, preview, confirmation, persistence, and one local notification.
+Begin Milestone 2 by extracting the deterministic scheduling engine from the validated vertical spike.
 
 ## Completed
 
-- Defined the MVP product promise.
-- Chose reminders as the hero feature and basic events as secondary.
-- Chose a voice-first, not voice-only, interaction model.
-- Chose local-first data with no MVP account or cloud synchronization.
-- Deferred device-calendar synchronization.
-- Included completion-relative recurrence in the MVP.
-- Established the initial project documentation and milestone roadmap.
-- Resolved recurrence boundaries, missed/overdue behavior, time-zone policy, and DST behavior.
-- Defined versioned interpretation and scheduled-item JSON schemas.
-- Defined the SQLite v1 domain and persistence model.
-- Added 70 representative interpretation cases with structured expected results.
-- Completed low-fidelity flows for every essential screen.
-- Selected Expo/React Native, SQLite, Temporal semantics, and a pure TypeScript recurrence engine.
-- Selected on-device Whisper and compact-model inference as the default AI path.
-- Selected optional user-authorized OpenRouter inference and rejected a mandatory backend for the MVP.
-- Defined audio/transcript retention and model qualification gates.
-
-## In progress
-
-No implementation work has started. The repository is ready for Milestone 1 scaffolding.
+- Defined the MVP promise, reminder/event boundaries, recurrence semantics, retention rules, and 70-case interpretation corpus.
+- Selected Expo/React Native, SQLite, Temporal semantics, React Native ExecuTorch, and optional user-authorized OpenRouter.
+- Built the Expo SDK 58 development-build application shell with strict TypeScript and Expo Router.
+- Implemented cache-scoped microphone capture, cleanup, Whisper transcription, downloadable/removable model controls, and typed fallback.
+- Implemented compact local interpretation, canonical schema expansion, semantic validation, and future-time protection.
+- Implemented SQLite v1 migration, expiring drafts, transactional confirmation, and retryable notification registration.
+- Implemented optional OpenRouter OAuth PKCE, secure storage, copy-code fallback, structured output, and content-free diagnostics.
+- Built and ran the native iOS app in an iPhone 17 Pro / iOS 26.3 simulator.
+- Verified model download/reload, permission denial/retry, local interpretation, preview, confirmation, notification registration, persistence, and restart recovery.
+- Compared three compact language-model candidates and provisionally selected Qwen 3 0.6B for the spike.
+- Recorded simulator evidence and the deferred physical-device qualification in `MILESTONE_1_VALIDATION.md`.
 
 ## Next up
 
-1. Scaffold an Expo SDK 58 development-build project with strict TypeScript.
-2. Prove local notification scheduling and cancellation on physical iOS and Android devices.
-3. Prove local Whisper transcription and measure Tiny versus Base.
-4. Evaluate the compact interpretation candidates against the 70-case corpus.
-5. Implement schema/domain validation and the confirmation preview.
-6. Persist one confirmed reminder and reconcile its notification.
-7. Validate OpenRouter OAuth PKCE and one structured-output-compatible endpoint.
+1. Implement pure deterministic occurrence generation for the supported one-time and recurring schedules.
+2. Add edit, pause, resume, complete, snooze, reschedule, and delete operations with notification reconciliation.
+3. Expand restart, migration, time-zone, and daylight-saving tests.
+4. Preserve the physical iOS/Android, notification-delivery, speech-quality, resource, and OpenRouter account checks for Milestone 6/private beta.
 
 ## Current risks
 
 | Risk | Impact | Current mitigation |
 | --- | --- | --- |
-| Plausible but incorrect AI interpretation | Users lose trust or miss commitments | Structured preview, deterministic validation, focused clarification |
-| Mobile notification restrictions | Reminders may not be registered or delivered as expected | Notification adapter, reconciliation, physical-device reliability testing |
-| Recurrence scope grows without limit | MVP becomes slow and difficult to explain | Explicit supported model and unsupported examples |
-| Compact local model misses critical fields | Incorrect reminders or loss of trust | 70-case corpus, 95% critical-field gate, deterministic validation |
-| Model download or memory pressure excludes older devices | Voice intelligence may be unavailable | Capability checks, removable downloads, manual mode, optional OpenRouter |
+| Plausible but incorrect AI interpretation | Users lose trust or miss commitments | Confirmation preview, compact protocol, canonical schema, semantic and future-time validation |
+| Mobile notification restrictions | Reminders may not be delivered as registered | Stable identifiers, reconciliation, deferred physical multi-day reliability testing |
+| Compact local model misses critical fields | Incorrect reminders or loss of trust | Provisional model only; 70-case corpus and release accuracy gates remain |
+| Model download or memory pressure excludes older devices | Voice intelligence may be unavailable | Removable downloads, typed/manual path, optional OpenRouter, deferred hardware benchmarks |
 | User-authorized remote key is exposed | User-funded inference could be abused | OAuth PKCE, secure storage, credit-limit guidance, disconnect/revoke flow |
-| Privacy concerns around voice | Users may avoid the primary interaction | Minimize retention, disclose remote processing, privacy-safe logs |
+| Privacy concerns around voice | Users may avoid the primary interaction | Minimal retention, explicit remote disclosure, content-free diagnostics |
 
-## Blockers
+## Deferred validation, not blockers
 
-None currently.
+- No paid Apple Developer membership is available, so this milestone used an iOS simulator instead of a signed physical-device build.
+- Physical iOS/Android microphone quality, notification delivery/actions, memory, battery, thermal, and multi-day reliability remain required before beta.
+- OpenRouter authorization and paid inference require a user-owned account, explicit consent, and available credits; no provider key is present in the repository.
 
 ## How to update this file
 
 - Update the date when status changes materially.
 - Keep the active objective to one outcome.
-- Move completed items out of “In progress.”
-- Record blockers with an owner or the decision needed to unblock them.
+- Record deferred evidence explicitly rather than inferring it from implementation.
 - Keep detailed task checklists in `ROADMAP.md`; use this file as a concise project snapshot.

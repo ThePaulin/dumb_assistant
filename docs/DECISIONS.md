@@ -182,6 +182,17 @@ SQLite and repository services own persistent state. React component state, `use
 
 **Consequence:** Introducing a state library requires a new decision tied to a concrete limitation.
 
+## D-017 — Spike diagnostics are local and content-free
+
+- **Status:** Accepted
+- **Date:** 2026-10-26
+
+Milestone 1 stores timing, result category, error code, model identifier, token counts, and reported remote cost in a local SQLite diagnostics table. It never stores audio, transcript text, reminder titles, notes, locations, prompts, raw model output, provider keys, or full provider responses.
+
+**Rationale:** Model qualification and failure diagnosis require comparable evidence, but user content is not required to measure latency, reliability, or cost.
+
+**Consequences:** The spike can be measured without an analytics vendor. Diagnostic export remains deferred; any future export must define retention and redaction rules first.
+
 ## Decision template
 
 Copy this section for new decisions:

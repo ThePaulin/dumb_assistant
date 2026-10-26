@@ -21,6 +21,12 @@ node_modules/
 dist/
 build/
 coverage/
+.expo/
+web-build/
+expo-env.d.ts
+*.tsbuildinfo
+/ios/
+/android/
 
 # Editors
 .idea/
