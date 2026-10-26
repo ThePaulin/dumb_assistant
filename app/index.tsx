@@ -463,7 +463,7 @@ export default function HomeScreen() {
               </Text>
               {proposal.notes && <Text style={styles.bodyText}>{proposal.notes}</Text>}
               {!canConfirm && (
-                <Text style={styles.warning}>This spike only confirms one-time reminders. The proposal was validated but not scheduled.</Text>
+                <Text style={styles.warning}>The recurrence engine supports this schedule, but this spike screen still confirms one-time reminders. Recurring creation UI arrives in the manual-product milestone.</Text>
               )}
             </>
           ) : proposal.result === 'needs_clarification' ? (

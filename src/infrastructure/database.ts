@@ -1,13 +1,19 @@
-import * as SQLite from 'expo-sqlite';
+import type * as SQLite from 'expo-sqlite';
 
-import type { InterpretationProposal } from '@/domain/proposal';
-import { localDateTimeToInstant } from '@/domain/time';
-import { uuidv7 } from '@/lib/ids';
+import type { InterpretationProposal } from '../domain/proposal';
+import { generateOccurrences } from '../domain/occurrence';
+import type { ScheduledItemDefinition } from '../domain/schedule';
+import { localDateTimeToInstant } from '../domain/time';
 
 const DATABASE_NAME = 'dumb-assistant.db';
 let databasePromise: Promise<SQLite.SQLiteDatabase> | undefined;
 
-const MIGRATION_1 = `
+async function newId(): Promise<string> {
+  const { uuidv7 } = await import('../lib/ids');
+  return uuidv7();
+}
+
+export const MIGRATION_1 = `
 CREATE TABLE IF NOT EXISTS scheduled_items (
   id TEXT PRIMARY KEY NOT NULL,
   schema_version INTEGER NOT NULL DEFAULT 1,
@@ -119,6 +125,8 @@ CREATE INDEX IF NOT EXISTS diagnostic_created_idx ON diagnostic_events(created_a
 PRAGMA user_version = 1;
 `;
 
+export const DATABASE_MIGRATIONS = [{ version: 1, sql: MIGRATION_1 }] as const;
+
 export type ReminderRow = {
   id: string;
   title: string;
@@ -136,11 +144,13 @@ export type ConfirmationRecord = {
 };
 
 export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
-  databasePromise ??= SQLite.openDatabaseAsync(DATABASE_NAME).then(async (db) => {
+  databasePromise ??= import('expo-sqlite').then(({ openDatabaseAsync }) => openDatabaseAsync(DATABASE_NAME)).then(async (db) => {
     await db.execAsync('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;');
-    const version = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
-    if ((version?.user_version ?? 0) < 1) {
-      await db.withExclusiveTransactionAsync((transaction) => transaction.execAsync(MIGRATION_1));
+    const current = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
+    for (const migration of DATABASE_MIGRATIONS) {
+      if ((current?.user_version ?? 0) < migration.version) {
+        await db.withExclusiveTransactionAsync((transaction) => transaction.execAsync(migration.sql));
+      }
     }
     return db;
   });
@@ -153,7 +163,7 @@ export async function saveDraft(
   source: 'voice' | 'text',
 ): Promise<string> {
   const db = await getDatabase();
-  const id = uuidv7();
+  const id = await newId();
   const created = new Date().toISOString();
   const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
   await db.runAsync(
@@ -198,9 +208,7 @@ export async function confirmOneTimeReminder(
   const title = proposal.title;
 
   const db = await getDatabase();
-  const itemId = uuidv7();
-  const occurrenceId = uuidv7();
-  const registrationId = uuidv7();
+  const itemId = await newId();
   const now = new Date().toISOString();
   const scheduledAtUtc = localDateTimeToInstant(
     schedule.start_local,
@@ -209,6 +217,37 @@ export async function confirmOneTimeReminder(
   if (new Date(scheduledAtUtc).getTime() <= Date.now()) {
     throw new Error('The reminder time must be in the future.');
   }
+  const item: ScheduledItemDefinition = {
+    id: itemId,
+    revision: 1,
+    kind: 'reminder',
+    status: 'active',
+    title,
+    notes: proposal.notes,
+    schedule: {
+      startLocal: schedule.start_local,
+      timeZone: schedule.time_zone,
+      timeZonePolicy: schedule.time_zone_policy,
+      frequency: 'none',
+      interval: null,
+      preferredDayOfMonth: null,
+      weekdays: [],
+      timesOfDay: [],
+      activeWindow: null,
+      recurrenceAnchor: 'fixed',
+      stop: { kind: 'never', onDate: null, afterOccurrences: null },
+    },
+    event: null,
+  };
+  const occurrence = generateOccurrences(item, {
+    fromUtc: now,
+    toUtc: scheduledAtUtc,
+    deviceTimeZone: schedule.time_zone,
+    limit: 1,
+  })[0];
+  if (!occurrence) throw new Error('The reminder did not produce an occurrence.');
+  const occurrenceId = occurrence.id;
+  const registrationId = `notification:${occurrenceId}:0`;
 
   await db.withExclusiveTransactionAsync(async (transaction) => {
     const draft = await transaction.getFirstAsync<{ id: string }>(
@@ -286,6 +325,56 @@ export async function markNotificationFailed(
      SET state = 'failed', last_error_code = ?, updated_at_utc = ? WHERE id = ?`,
     errorCode,
     new Date().toISOString(),
+    registrationId,
+  );
+}
+
+export type NotificationReconciliation = {
+  cancel: Array<{ id: string; platform_identifier: string; remains_desired: number }>;
+  register: Array<{ id: string; title: string; desired_at_utc: string }>;
+};
+
+export async function notificationReconciliation(
+  nowUtc: string,
+  cap: number,
+): Promise<NotificationReconciliation> {
+  const db = await getDatabase();
+  const desired = await db.getAllAsync<{ id: string; title: string; desired_at_utc: string; state: string; platform_identifier: string | null }>(
+    `SELECT n.id, i.title, n.desired_at_utc, n.state, n.platform_identifier
+     FROM notification_registrations n
+     JOIN occurrences o ON o.id = n.occurrence_id
+     JOIN scheduled_items i ON i.id = o.item_id
+     WHERE i.status = 'active' AND o.status = 'scheduled' AND n.desired_at_utc > ?
+     ORDER BY n.desired_at_utc ASC, n.id ASC LIMIT ?`,
+    nowUtc,
+    cap,
+  );
+  const desiredIds = new Set(desired.map((row) => row.id));
+  const withPlatform = await db.getAllAsync<{ id: string; platform_identifier: string; state: string }>(
+    `SELECT id, platform_identifier, state FROM notification_registrations
+     WHERE platform_identifier IS NOT NULL`,
+  );
+  return {
+    cancel: withPlatform
+      .filter((row) => !desiredIds.has(row.id) || row.state !== 'registered')
+      .map((row) => ({ id: row.id, platform_identifier: row.platform_identifier, remains_desired: desiredIds.has(row.id) ? 1 : 0 })),
+    register: desired
+      .filter((row) => row.state !== 'registered')
+      .map(({ id, title, desired_at_utc }) => ({ id, title, desired_at_utc })),
+  };
+}
+
+export async function markNotificationCancelled(
+  registrationId: string,
+  remainsDesired: boolean,
+  nowUtc: string,
+): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync(
+    `UPDATE notification_registrations
+     SET state = ?, platform_identifier = NULL, updated_at_utc = ? WHERE id = ?`,
+    remainsDesired ? 'pending' : 'cancelled',
+    nowUtc,
     registrationId,
   );
 }

@@ -3,14 +3,18 @@ import { Platform } from 'react-native';
 
 import {
   markNotificationFailed,
+  markNotificationCancelled,
   markNotificationRegistered,
-  reconcileableRegistrations,
+  notificationReconciliation,
   type ConfirmationRecord,
 } from './database';
 import { recordDiagnostic } from './diagnostics';
-import { instantToDate } from '@/domain/time';
+import { deviceTimeZone, instantToDate } from '@/domain/time';
+import { activeScheduledItemIds, materializeOccurrences } from './schedule-repository';
 
 const CHANNEL_ID = 'reminders';
+const RECONCILIATION_HORIZON_DAYS = 30;
+const REGISTRATION_CAP = 60;
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -88,10 +92,23 @@ export async function scheduleConfirmedReminder(record: ConfirmationRecord): Pro
 }
 
 export async function reconcileNotifications(): Promise<number> {
-  const desired = await reconcileableRegistrations();
-  if (desired.length > 0 && !(await prepareNotifications())) return 0;
+  const now = new Date();
+  const nowUtc = now.toISOString();
+  const horizonUtc = new Date(now.getTime() + RECONCILIATION_HORIZON_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  for (const itemId of await activeScheduledItemIds()) {
+    await materializeOccurrences(itemId, nowUtc, horizonUtc, deviceTimeZone());
+  }
+  let desired = await notificationReconciliation(nowUtc, REGISTRATION_CAP);
+  for (const obsolete of desired.cancel) {
+    await Notifications.cancelScheduledNotificationAsync(obsolete.platform_identifier);
+    await markNotificationCancelled(obsolete.id, obsolete.remains_desired === 1, nowUtc);
+  }
+  if (desired.cancel.some((row) => row.remains_desired === 1)) {
+    desired = await notificationReconciliation(nowUtc, REGISTRATION_CAP);
+  }
+  if (desired.register.length > 0 && !(await prepareNotifications())) return 0;
   let registered = 0;
-  for (const row of desired) {
+  for (const row of desired.register) {
     try {
       await register(row.id, row.title, row.desired_at_utc);
       registered += 1;

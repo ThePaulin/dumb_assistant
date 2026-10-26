@@ -4,11 +4,11 @@ Last updated: 2026-10-26
 
 ## Current milestone
 
-**Milestone 0 — Complete. Milestone 1 — Complete (simulator-scoped technical spike). Milestone 2 — Not started.**
+**Milestones 0–2 — Complete. Milestone 3 — Not started.**
 
 ## Current objective
 
-Begin Milestone 2 by extracting the deterministic scheduling engine from the validated vertical spike.
+Build the usable manual product on top of the deterministic scheduling engine.
 
 ## Completed
 
@@ -23,13 +23,20 @@ Begin Milestone 2 by extracting the deterministic scheduling engine from the val
 - Verified model download/reload, permission denial/retry, local interpretation, preview, confirmation, notification registration, persistence, and restart recovery.
 - Compared three compact language-model candidates and provisionally selected Qwen 3 0.6B for the spike.
 - Recorded simulator evidence and the deferred physical-device qualification in `MILESTONE_1_VALIDATION.md`.
+- Implemented an AI-independent scheduling domain with deterministic occurrence identities and strict combination validation.
+- Implemented one-time, interval, weekday, multi-time, active-window, fixed, and completion-relative recurrence.
+- Implemented inclusive end-date/count/manual-stop behavior, monthly clamping, relative-date resolution, and explicit DST/time-zone policies.
+- Added transactional SQLite schedule creation, materialization, edit, pause, resume, stop, complete, snooze, reschedule, and hard-delete operations.
+- Replaced append-only notification retry with capped, idempotent reconciliation that cancels obsolete platform registrations.
+- Added schedule, transition, reconciliation, and executable SQLite migration tests; the full repository check passes 76 tests.
+- Recorded Milestone 2 scope and evidence in `MILESTONE_2_VALIDATION.md`.
 
 ## Next up
 
-1. Implement pure deterministic occurrence generation for the supported one-time and recurring schedules.
-2. Add edit, pause, resume, complete, snooze, reschedule, and delete operations with notification reconciliation.
-3. Expand restart, migration, time-zone, and daylight-saving tests.
-4. Preserve the physical iOS/Android, notification-delivery, speech-quality, resource, and OpenRouter account checks for Milestone 6/private beta.
+1. Build the Today/upcoming and item-detail read models and screens.
+2. Add manual creation/editing, recurrence controls, and occurrence actions over the Milestone 2 repository APIs.
+3. Add permission onboarding plus empty, loading, error, paused, ended, and completed states.
+4. Preserve physical notification-delivery and multi-day reliability qualification for Milestone 6/private beta.
 
 ## Current risks
 

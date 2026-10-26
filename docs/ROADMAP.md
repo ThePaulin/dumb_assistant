@@ -8,7 +8,7 @@ This roadmap tracks outcomes rather than calendar promises. Dates and estimates 
 | --- | --- | --- |
 | 0. Product and scheduling specification | Complete | The supported product behavior is explicit and testable |
 | 1. End-to-end technical spike | Complete | The local vertical architecture works in an iOS simulator; hardware qualification is deferred |
-| 2. Deterministic reminder engine | Not started | Supported schedules behave correctly without AI |
+| 2. Deterministic reminder engine | Complete | Supported schedules behave correctly without AI |
 | 3. Usable manual product | Not started | The complete product works without voice |
 | 4. Voice-first creation | Not started | Natural input becomes a safe, editable proposal |
 | 5. Interpretation quality | Not started | Accuracy is measured and regressions are detectable |
@@ -72,28 +72,28 @@ Exit criteria:
 
 Deliverables:
 
-- [ ] Local persistence and migrations
-- [ ] Schedule validation
-- [ ] Occurrence generation
-- [ ] Time-zone-aware date handling
-- [ ] One-time reminders
-- [ ] Every-N-unit recurrence
-- [ ] Weekday recurrence
-- [ ] Multiple times per day
-- [ ] Active-hour windows
-- [ ] End date, occurrence count, and manual-stop rules
-- [ ] Fixed and completion-relative recurrence
-- [ ] Pause, resume, complete, snooze, reschedule, and delete operations
-- [ ] Notification scheduling and reconciliation
-- [ ] Automated schedule test suite
+- [x] Local persistence and migrations
+- [x] Schedule validation
+- [x] Occurrence generation
+- [x] Time-zone-aware date handling
+- [x] One-time reminders
+- [x] Every-N-unit recurrence
+- [x] Weekday recurrence
+- [x] Multiple times per day
+- [x] Active-hour windows
+- [x] End date, occurrence count, and manual-stop rules
+- [x] Fixed and completion-relative recurrence
+- [x] Pause, resume, complete, snooze, reschedule, and delete operations
+- [x] Notification scheduling and reconciliation
+- [x] Automated schedule test suite
 
 Exit criteria:
 
-- [ ] All supported scheduling examples pass automated tests.
-- [ ] Restarting the app does not lose or duplicate schedules.
-- [ ] Editing or deleting an item reconciles pending notifications.
-- [ ] Daylight-saving and time-zone behaviors are defined and tested.
-- [ ] The scheduling engine has no AI dependency.
+- [x] All supported scheduling examples pass automated tests.
+- [x] Restarting the app does not lose or duplicate schedules.
+- [x] Editing or deleting an item reconciles pending notifications.
+- [x] Daylight-saving and time-zone behaviors are defined and tested.
+- [x] The scheduling engine has no AI dependency.
 
 ## Milestone 3 — Usable manual product
 
