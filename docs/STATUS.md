@@ -4,11 +4,11 @@ Last updated: 2026-10-26
 
 ## Current milestone
 
-**Milestone 0 — Complete. Milestone 1 — Ready to start.**
+**Milestone 0 — Complete. Milestone 1 — In progress (implementation complete; device validation pending).**
 
 ## Current objective
 
-Build the Milestone 1 end-to-end technical spike: local voice capture, on-device transcription, on-device interpretation, preview, confirmation, persistence, and one local notification.
+Complete Milestone 1 physical-device validation on iOS and Android and record the required model, notification, resource, latency, memory, thermal, battery, and OpenRouter evidence.
 
 ## Completed
 
@@ -31,17 +31,22 @@ Build the Milestone 1 end-to-end technical spike: local voice capture, on-device
 
 ## In progress
 
-No implementation work has started. The repository is ready for Milestone 1 scaffolding.
+- Expo SDK 58 development-build application shell with strict TypeScript and Expo Router.
+- Local microphone capture, cache cleanup, Whisper transcription, compact-model interpretation, and removable model lifecycle controls.
+- Provider-neutral schema plus semantic validation before preview, persistence, or scheduling.
+- SQLite v1 migration, expiring interpretation drafts, transactional confirmation, and retryable notification registration.
+- Optional OpenRouter OAuth PKCE with secure storage, copy-code fallback, structured output, cost metadata, and local validation.
+- Privacy-safe timing/error/token/cost diagnostics.
+- Automated validation/time tests, clean native prebuilds, and successful iOS/Android Hermes bundle exports.
 
 ## Next up
 
-1. Scaffold an Expo SDK 58 development-build project with strict TypeScript.
-2. Prove local notification scheduling and cancellation on physical iOS and Android devices.
-3. Prove local Whisper transcription and measure Tiny versus Base.
-4. Evaluate the compact interpretation candidates against the 70-case corpus.
-5. Implement schema/domain validation and the confirmation preview.
-6. Persist one confirmed reminder and reconcile its notification.
-7. Validate OpenRouter OAuth PKCE and one structured-output-compatible endpoint.
+1. Run the offline voice-to-notification flow on one physical iOS and one physical Android device.
+2. Exercise model download pause/resume/cancel/delete/reload and capture storage/memory evidence.
+3. Measure Whisper Tiny versus Base and at least three compact interpretation candidates against the 70-case corpus.
+4. Run repeated-use latency, battery, and thermal measurements.
+5. Validate OpenRouter OAuth PKCE, key revocation, endpoint capability, latency, cost, and privacy settings.
+6. Fill the device matrix in `MILESTONE_1_VALIDATION.md`, then mark the remaining roadmap gates complete.
 
 ## Current risks
 
@@ -57,7 +62,8 @@ No implementation work has started. The repository is ready for Milestone 1 scaf
 
 ## Blockers
 
-None currently.
+- Physical iOS and Android devices are not attached to the current development environment, so notification receipt, offline inference, native memory, thermal, and battery gates cannot be truthfully completed here.
+- OpenRouter authorization and paid inference require a user-owned account, explicit consent, and available credits; no provider key is present in the repository.
 
 ## How to update this file
 

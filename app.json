@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "Dumb Assistant",
+    "slug": "dumb-assistant",
+    "scheme": "dumbassistant",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Dumb Assistant uses the microphone only while you record a reminder. Audio is deleted after transcription."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "reminders"
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true
+        }
+      ],
+      "expo-sqlite",
+      "react-native-audio-api",
+      "expo-asset"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.thepaulin.dumbassistant"
+    },
+    "android": {
+      "package": "com.thepaulin.dumbassistant",
+      "adaptiveIcon": {
+        "backgroundColor": "#F3EEE5",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

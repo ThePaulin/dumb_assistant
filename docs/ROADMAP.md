@@ -7,7 +7,7 @@ This roadmap tracks outcomes rather than calendar promises. Dates and estimates 
 | Milestone | Status | Outcome |
 | --- | --- | --- |
 | 0. Product and scheduling specification | Complete | The supported product behavior is explicit and testable |
-| 1. End-to-end technical spike | Not started | One spoken request produces one real notification |
+| 1. End-to-end technical spike | In progress | One spoken request produces one real notification |
 | 2. Deterministic reminder engine | Not started | Supported schedules behave correctly without AI |
 | 3. Usable manual product | Not started | The complete product works without voice |
 | 4. Voice-first creation | Not started | Natural input becomes a safe, editable proposal |
@@ -48,21 +48,21 @@ Exit criteria:
 
 Deliverables:
 
-- [ ] Cross-platform application shell
-- [ ] Microphone capture
-- [ ] Downloadable on-device speech and language models
-- [ ] On-device speech transcription
-- [ ] Structured local interpretation of a limited phrase set
-- [ ] Optional OpenRouter OAuth PKCE connection and compatible-model request
-- [ ] Minimal confirmation preview
-- [ ] One-time local notification
-- [ ] Basic timing, error, and cost instrumentation
+- [x] Cross-platform application shell
+- [x] Microphone capture
+- [x] Downloadable on-device speech and language models
+- [x] On-device speech transcription
+- [x] Structured local interpretation of a limited phrase set
+- [x] Optional OpenRouter OAuth PKCE connection and compatible-model request
+- [x] Minimal confirmation preview
+- [x] One-time local notification
+- [x] Basic timing, error, and cost instrumentation
 
 Exit criteria:
 
 - [ ] The flow works on one physical iOS device and one physical Android device.
 - [ ] A one-time reminder can be created entirely through voice with the network disabled.
-- [ ] Invalid model output cannot create a malformed schedule.
+- [x] Invalid model output cannot create a malformed schedule.
 - [ ] Local model accuracy, latency, peak memory, size, thermal behavior, and battery impact are documented.
 - [ ] Optional remote latency, cost, privacy, and model-capability behavior are documented.
 

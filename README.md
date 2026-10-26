@@ -8,7 +8,7 @@ The app is designed for people who know what they need to remember but do not wa
 
 ## Project status
 
-**Milestone 0 — Product and scheduling specification is complete.** The project is ready to begin the Milestone 1 end-to-end technical spike.
+**Milestone 0 is complete. Milestone 1 is implemented and awaiting physical-device validation.** The spike now covers offline capture, transcription, local interpretation, schema validation, preview, SQLite persistence, one-time notifications, and optional OpenRouter interpretation. It is not marked complete until the iOS/Android hardware and measurement gates pass.
 
 See [docs/STATUS.md](docs/STATUS.md) for the current work and [docs/ROADMAP.md](docs/ROADMAP.md) for milestone progress.
 
@@ -76,6 +76,7 @@ The user can confirm or edit this interpretation before the reminder is schedule
 - [UX flows](docs/UX_FLOWS.md) — low-fidelity screen flows and accessibility criteria
 - [Roadmap](docs/ROADMAP.md) — milestones, deliverables, and exit criteria
 - [Current status](docs/STATUS.md) — active work, risks, and immediate next steps
+- [Milestone 1 validation](docs/MILESTONE_1_VALIDATION.md) — implemented spike, evidence, device matrix, and measurement protocol
 - [Decision log](docs/DECISIONS.md) — product and technical decisions with their rationale
 - [Contributing](CONTRIBUTING.md) — working agreements and definition of done
 - [Interpretation schema](schemas/interpretation-proposal.v1.schema.json) — versioned AI output contract
@@ -83,12 +84,35 @@ The user can confirm or edit this interpretation before the reminder is schedule
 
 ## Development
 
-The selected foundation is Expo SDK 58, React Native, strict TypeScript, Expo Router, SQLite, Temporal semantics, and React Native ExecuTorch. Development commands will be added when Milestone 1 scaffolds the application.
+The application uses Expo SDK 58, React Native 0.88, strict TypeScript, Expo Router, SQLite, Temporal semantics, and React Native ExecuTorch. ExecuTorch requires the New Architecture and native development builds; Expo Go is not a supported runtime for this spike.
 
-Validate the completed specification package with:
+Requirements:
+
+- Node.js 22
+- Xcode for iOS or Android Studio/SDK for Android
+- A physical arm64 device for milestone validation
+
+Install and run:
 
 ```bash
-node scripts/validate-milestone-0.mjs
+npm install
+npm run ios
+# or
+npm run android
+```
+
+The first offline run downloads removable Whisper Tiny English and quantized Qwen 2.5 0.5B model assets. No model binaries or provider credentials are committed. The optional OpenRouter path uses user-authorized OAuth PKCE and device secure storage.
+
+Run the repository checks with:
+
+```bash
+npm run check
+```
+
+Create a production-like bundle without a device with:
+
+```bash
+npx expo export --platform ios
 ```
 
 ## License
