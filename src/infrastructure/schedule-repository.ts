@@ -306,7 +306,7 @@ export async function snoozeStoredOccurrence(occurrenceId: string, snoozedUntilU
     const result = await transaction.runAsync("UPDATE occurrences SET snoozed_until_utc = ? WHERE id = ? AND status = 'scheduled'", snoozedUntilUtc, occurrenceId);
     if (!result.changes) throw new Error('Only a scheduled occurrence can be snoozed.');
     await transaction.runAsync(
-      `UPDATE notification_registrations SET desired_at_utc = ?, state = 'pending', platform_identifier = NULL, updated_at_utc = ?
+      `UPDATE notification_registrations SET desired_at_utc = ?, state = 'pending', updated_at_utc = ?
        WHERE occurrence_id = ?`, snoozedUntilUtc, nowUtc, occurrenceId,
     );
   });
@@ -329,7 +329,7 @@ export async function rescheduleStoredOccurrence(
     const registrations = await transaction.getAllAsync<{ id: string; alert_offset_minutes: number }>('SELECT id, alert_offset_minutes FROM notification_registrations WHERE occurrence_id = ?', occurrenceId);
     for (const registration of registrations) {
       const desired = Temporal.Instant.from(scheduledAtUtc).subtract({ minutes: registration.alert_offset_minutes }).toString({ smallestUnit: 'millisecond' });
-      await transaction.runAsync("UPDATE notification_registrations SET desired_at_utc = ?, state = 'pending', platform_identifier = NULL, updated_at_utc = ? WHERE id = ?", desired, nowUtc, registration.id);
+      await transaction.runAsync("UPDATE notification_registrations SET desired_at_utc = ?, state = 'pending', updated_at_utc = ? WHERE id = ?", desired, nowUtc, registration.id);
     }
   });
 }
@@ -350,5 +350,35 @@ export async function deleteScheduledItem(itemId: string): Promise<string[]> {
 export async function activeScheduledItemIds(): Promise<string[]> {
   const rows = await (await getDatabase()).getAllAsync<{ id: string }>("SELECT id FROM scheduled_items WHERE status = 'active' ORDER BY id");
   return rows.map((row) => row.id);
+}
+
+export async function markStoredMissedOccurrences(nowUtc: string): Promise<number> {
+  const database = await getDatabase();
+  let changed = 0;
+  await database.withExclusiveTransactionAsync(async (transaction) => {
+    const result = await transaction.runAsync(
+      `WITH ranked AS (
+         SELECT o.id, row_number() OVER (
+           PARTITION BY o.item_id ORDER BY coalesce(o.snoozed_until_utc, o.scheduled_at_utc) DESC
+         ) AS overdue_rank
+         FROM occurrences o
+         JOIN scheduled_items i ON i.id = o.item_id
+         WHERE o.status = 'scheduled' AND coalesce(o.snoozed_until_utc, o.scheduled_at_utc) < ?
+           AND i.status = 'active' AND i.recurrence_anchor = 'fixed'
+       )
+       UPDATE occurrences SET status = 'missed', missed_at_utc = ?
+       WHERE id IN (SELECT id FROM ranked WHERE overdue_rank > 1)`,
+      nowUtc,
+      nowUtc,
+    );
+    changed = result.changes;
+    await transaction.runAsync(
+      `UPDATE notification_registrations SET state = 'cancelled', updated_at_utc = ?
+       WHERE occurrence_id IN (SELECT id FROM occurrences WHERE status = 'missed')
+         AND state <> 'cancelled'`,
+      nowUtc,
+    );
+  });
+  return changed;
 }
 

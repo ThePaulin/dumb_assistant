@@ -10,7 +10,7 @@ import {
 } from './database';
 import { recordDiagnostic } from './diagnostics';
 import { deviceTimeZone, instantToDate } from '@/domain/time';
-import { activeScheduledItemIds, materializeOccurrences } from './schedule-repository';
+import { activeScheduledItemIds, markStoredMissedOccurrences, materializeOccurrences } from './schedule-repository';
 
 const CHANNEL_ID = 'reminders';
 const RECONCILIATION_HORIZON_DAYS = 30;
@@ -98,6 +98,7 @@ export async function reconcileNotifications(): Promise<number> {
   for (const itemId of await activeScheduledItemIds()) {
     await materializeOccurrences(itemId, nowUtc, horizonUtc, deviceTimeZone());
   }
+  await markStoredMissedOccurrences(nowUtc);
   let desired = await notificationReconciliation(nowUtc, REGISTRATION_CAP);
   for (const obsolete of desired.cancel) {
     await Notifications.cancelScheduledNotificationAsync(obsolete.platform_identifier);
@@ -106,7 +107,11 @@ export async function reconcileNotifications(): Promise<number> {
   if (desired.cancel.some((row) => row.remains_desired === 1)) {
     desired = await notificationReconciliation(nowUtc, REGISTRATION_CAP);
   }
-  if (desired.register.length > 0 && !(await prepareNotifications())) return 0;
+  if (desired.register.length > 0) {
+    const permission = await Notifications.getPermissionsAsync();
+    if (!permission.granted) return 0;
+    await prepareNotifications();
+  }
   let registered = 0;
   for (const row of desired.register) {
     try {

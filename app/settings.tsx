@@ -1,6 +1,7 @@
-import { useFocusEffect } from 'expo-router';
+import * as Notifications from 'expo-notifications';
+import { Link, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
 
 import {
@@ -11,6 +12,7 @@ import {
   isOpenRouterConnected,
   openOpenRouterKeySettings,
 } from '@/infrastructure/openrouter';
+import { prepareNotifications, reconcileNotifications } from '@/infrastructure/notifications';
 import { colors } from '@/theme';
 
 function formatBytes(bytes: number): string {
@@ -25,10 +27,13 @@ export default function SettingsScreen() {
   const [message, setMessage] = useState<string | null>(null);
   const [copyCodeVerifier, setCopyCodeVerifier] = useState<string | null>(null);
   const [authorizationCode, setAuthorizationCode] = useState('');
+  const [notificationPermission, setNotificationPermission] = useState<{ granted: boolean; canAskAgain: boolean } | null>(null);
 
   const refresh = useCallback(async () => {
     setConnected(await isOpenRouterConnected());
     setFiles(await ExpoResourceFetcher.listDownloadedFiles());
+    const permission = await Notifications.getPermissionsAsync();
+    setNotificationPermission({ granted: permission.granted, canAskAgain: permission.canAskAgain });
   }, []);
 
   useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
@@ -48,6 +53,29 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.page}>
+      <View style={styles.card}>
+        <Text style={styles.eyebrow}>REMINDER DELIVERY</Text>
+        <Text style={styles.title}>Notifications</Text>
+        <Text style={styles.body}>
+          Schedules are stored locally even when notifications are off. Permission is required for due-time alerts.
+        </Text>
+        <Text style={[styles.status, notificationPermission?.granted && styles.statusConnected]}>
+          {notificationPermission?.granted ? '● Enabled' : '○ Not enabled'}
+        </Text>
+        {!notificationPermission?.granted ? (
+          <Button
+            label={notificationPermission?.canAskAgain === false ? 'Open system settings' : 'Enable notifications'}
+            disabled={busy}
+            onPress={() => void run(async () => {
+              if (notificationPermission?.canAskAgain === false) await Linking.openSettings();
+              else if (await prepareNotifications()) await reconcileNotifications();
+            })}
+          />
+        ) : (
+          <OutlineButton label="Open system settings" disabled={busy} onPress={() => void run(Linking.openSettings)} />
+        )}
+      </View>
+
       <View style={styles.card}>
         <Text style={styles.eyebrow}>OPTIONAL REMOTE ENGINE</Text>
         <Text style={styles.title}>OpenRouter</Text>
@@ -124,10 +152,16 @@ export default function SettingsScreen() {
 
       <View style={styles.card}>
         <Text style={styles.eyebrow}>VALIDATION SCOPE</Text>
-        <Text style={styles.title}>Simulator spike complete</Text>
+        <Text style={styles.title}>Manual product</Text>
         <Text style={styles.body}>
-          The iOS Simulator verifies the native build, local model pipeline, guarded confirmation, persistence, and notification registration. Real microphone acoustics, notification delivery, memory, battery, thermal, and Android behavior remain physical-device follow-ups before beta.
+          Reminders and events can be created, edited, completed, snoozed, paused, resumed, rescheduled, ended, and deleted without voice. Physical notification delivery, memory, battery, thermal, and Android qualification remain later hardening work.
         </Text>
+        <Link href={'/voice-spike' as never} asChild>
+          <Pressable accessibilityRole="button" style={styles.outlineButton}>
+            <Text style={styles.outlineText}>Open voice technical spike</Text>
+          </Pressable>
+        </Link>
+        <Text style={styles.finePrint}>The voice route preserves Milestone 1 engineering evidence. Its product UX will be replaced during Milestone 4.</Text>
       </View>
 
       {message && <Text style={styles.error}>{message}</Text>}

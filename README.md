@@ -8,7 +8,7 @@ The app is designed for people who know what they need to remember but do not wa
 
 ## Project status
 
-**Milestones 0–2 are complete.** The app foundation now includes the validated simulator spike plus an AI-independent scheduling engine, transactional SQLite operations, time-zone/DST semantics, and idempotent notification reconciliation. Milestone 3 will expose those capabilities through the complete manual product; physical-device reliability qualification remains scheduled for Milestone 6.
+**Milestones 0–3 are complete.** The app now includes the validated simulator spike, an AI-independent scheduling engine, and a complete manual product for creating and managing reminders and events. Milestone 4 will turn the existing voice spike into the polished primary creation flow; physical-device reliability qualification remains scheduled for Milestone 6.
 
 See [docs/STATUS.md](docs/STATUS.md) for the current work and [docs/ROADMAP.md](docs/ROADMAP.md) for milestone progress.
 
@@ -78,6 +78,7 @@ The user can confirm or edit this interpretation before the reminder is schedule
 - [Current status](docs/STATUS.md) — active work, risks, and immediate next steps
 - [Milestone 1 validation](docs/MILESTONE_1_VALIDATION.md) — implemented spike, evidence, device matrix, and measurement protocol
 - [Milestone 2 validation](docs/MILESTONE_2_VALIDATION.md) — deterministic engine, persistence, reconciliation, and automated evidence
+- [Milestone 3 validation](docs/MILESTONE_3_VALIDATION.md) — manual product surfaces, accessible workflows, and simulator evidence
 - [Decision log](docs/DECISIONS.md) — product and technical decisions with their rationale
 - [Contributing](CONTRIBUTING.md) — working agreements and definition of done
 - [Interpretation schema](schemas/interpretation-proposal.v1.schema.json) — versioned AI output contract

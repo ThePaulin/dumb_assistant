@@ -22,7 +22,10 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="settings" options={{ title: 'Models & OpenRouter' }} />
+        <Stack.Screen name="editor" options={{ title: 'New item', presentation: 'modal' }} />
+        <Stack.Screen name="item/[id]" options={{ title: 'Item details', headerBackTitle: 'Today' }} />
+        <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+        <Stack.Screen name="voice-spike" options={{ headerShown: false }} />
       </Stack>
     </SafeAreaProvider>
   );

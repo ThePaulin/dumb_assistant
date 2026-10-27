@@ -4,11 +4,11 @@ Last updated: 2026-10-26
 
 ## Current milestone
 
-**Milestones 0–2 — Complete. Milestone 3 — Not started.**
+**Milestones 0–3 — Complete. Milestone 4 — Not started.**
 
 ## Current objective
 
-Build the usable manual product on top of the deterministic scheduling engine.
+Build the polished voice-first creation flow on top of the complete manual product.
 
 ## Completed
 
@@ -30,12 +30,19 @@ Build the usable manual product on top of the deterministic scheduling engine.
 - Replaced append-only notification retry with capped, idempotent reconciliation that cancels obsolete platform registrations.
 - Added schedule, transition, reconciliation, and executable SQLite migration tests; the full repository check passes 76 tests.
 - Recorded Milestone 2 scope and evidence in `MILESTONE_2_VALIDATION.md`.
+- Added a Today/upcoming surface with explicit overdue, today, upcoming, paused, ended, and completed states.
+- Added complete manual reminder and event creation, series editing, recurrence controls, validation, and next-occurrence preview.
+- Added detail and history views with complete, snooze, reschedule, pause, resume, end, edit, and delete actions.
+- Added notification-permission onboarding and recovery without blocking local schedule creation.
+- Added accessible labels, linear schedule summaries, scalable wrapping layouts, and visible empty, loading, warning, and error states.
+- Fixed obsolete platform alerts after snooze/reschedule and added persisted missed-occurrence reconciliation.
+- Recorded Milestone 3 implementation and simulator evidence in `MILESTONE_3_VALIDATION.md`.
 
 ## Next up
 
-1. Build the Today/upcoming and item-detail read models and screens.
-2. Add manual creation/editing, recurrence controls, and occurrence actions over the Milestone 2 repository APIs.
-3. Add permission onboarding plus empty, loading, error, paused, ended, and completed states.
+1. Polish recording, cancellation, transcript, and recovery states around the existing voice spike.
+2. Route typed and spoken input through the same interpretation and confirmation flow.
+3. Add focused clarification, uncertainty display, and full manual correction from preview.
 4. Preserve physical notification-delivery and multi-day reliability qualification for Milestone 6/private beta.
 
 ## Current risks

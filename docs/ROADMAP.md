@@ -9,7 +9,7 @@ This roadmap tracks outcomes rather than calendar promises. Dates and estimates 
 | 0. Product and scheduling specification | Complete | The supported product behavior is explicit and testable |
 | 1. End-to-end technical spike | Complete | The local vertical architecture works in an iOS simulator; hardware qualification is deferred |
 | 2. Deterministic reminder engine | Complete | Supported schedules behave correctly without AI |
-| 3. Usable manual product | Not started | The complete product works without voice |
+| 3. Usable manual product | Complete | The complete product works without voice |
 | 4. Voice-first creation | Not started | Natural input becomes a safe, editable proposal |
 | 5. Interpretation quality | Not started | Accuracy is measured and regressions are detectable |
 | 6. Reliability and hardening | Not started | Reminders remain dependable under real mobile conditions |
@@ -99,22 +99,22 @@ Exit criteria:
 
 Deliverables:
 
-- [ ] Today/upcoming screen
-- [ ] Reminder and event detail screens
-- [ ] Manual creation and editing
-- [ ] Recurrence editor
-- [ ] Completion and snooze interactions
-- [ ] Paused, ended, and completed states
-- [ ] Notification-permission onboarding
-- [ ] Empty, loading, and error states
-- [ ] Initial accessibility implementation
+- [x] Today/upcoming screen
+- [x] Reminder and event detail screens
+- [x] Manual creation and editing
+- [x] Recurrence editor
+- [x] Completion and snooze interactions
+- [x] Paused, ended, and completed states
+- [x] Notification-permission onboarding
+- [x] Empty, loading, and error states
+- [x] Initial accessibility implementation
 
 Exit criteria:
 
-- [ ] Every supported item can be created and managed without voice.
-- [ ] The next scheduled occurrence is always visible.
-- [ ] Item status is unambiguous.
-- [ ] Core workflows work with screen readers and larger text sizes.
+- [x] Every supported item can be created and managed without voice.
+- [x] The next scheduled occurrence is always visible.
+- [x] Item status is unambiguous.
+- [x] Core workflows work with screen readers and larger text sizes.
 
 ## Milestone 4 — Voice-first creation
 
